@@ -14,7 +14,7 @@ export class authService {
         if (!data.email) throw new Error("vui long dien email")
         if (!data.password) throw new Error("vui long dien password")
         const hashPassword = await bcrypt.hash(data.password, 10)
-        const newUser = new UserModel({ username: data.username, password: hashPassword })
+        const newUser = new UserModel({ username: data.username,email:data.email, password: hashPassword })
         await newUser.save()
 
         return newUser
