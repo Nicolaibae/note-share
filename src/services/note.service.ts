@@ -21,8 +21,11 @@ export class noteService {
 
       return await NoteModel.find()
    }
-   async noteById(ID: string): Promise<INote> {
+   async noteById(ID: string, userToken: any): Promise<INote> {
       const note: any = await NoteModel.findById(ID);
+      const userLegit = userToken.id
+      if(note?.viewers.includes(userLegit) &&note?.author.toString()!== userLegit) 
+         throw new Error("Bạn không có quyền truy cập")
       return note
    }
    async updateNote(data: INote, ID: any): Promise<INote> {
@@ -33,7 +36,6 @@ export class noteService {
       noteId.content = data.content || noteId.content
       await noteId.save()
       return noteId
-
    }
    async deleteNote(ID: string): Promise<INote> {
       const noteId = await NoteModel.findByIdAndDelete(ID)

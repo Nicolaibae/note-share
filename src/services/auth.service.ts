@@ -1,26 +1,17 @@
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { IUser, UserModel } from "../models/user.models";
-
+import { UserService } from "./user.service";
 
 
 
 export class authService {
+    constructor(private readonly userService: UserService) { }
     async Register(data: IUser): Promise<IUser> {
-
-        if (!data.username) throw new Error("vui long dien ten")
-        const userAuth = await UserModel.findOne({ username: data.username })
-        if (userAuth) throw new Error("đã tồn tại tên này")
-        if (!data.email) throw new Error("vui long dien email")
-        if (!data.password) throw new Error("vui long dien password")
-        const hashPassword = await bcrypt.hash(data.password, 10)
-        const newUser = new UserModel({ username: data.username,email:data.email, password: hashPassword })
-        await newUser.save()
-
+        const newUser = await this.userService.createUser(data)
         return newUser
-
     }
-    async Login(data: IUser): Promise<IUser> {
+    async Login(data: IUser): Promise<{ refreshtoken: string; accessToken: string }> {
         if (!data.username) throw new Error("vui long dien ten")
         const user = await UserModel.findOne({ username: data.username })
         if (!user) throw new Error("Không tồn tại người dùng này")
@@ -38,10 +29,15 @@ export class authService {
                 expiresIn: "7d"
             }
         )
-        user.accesstoken = accessToken
+
         user.refreshtoken = refreshToken
         await user.save()
-        return user
+        return {
+
+            accessToken,
+            refreshtoken: refreshToken,
+        }
+            ;
     }
     async RefreshToken(data: IUser): Promise<IUser> {
 
@@ -53,7 +49,7 @@ export class authService {
         if (user.refreshtoken !== data.refreshtoken) throw new Error("Token không đúng")
         const newAccessToken = jwt.sign({ id: user._id, username: user.username }, process.env.ACCESS_TOKEN as string, { expiresIn: "1h" })
         const newRefreshToken = jwt.sign({ id: user._id, username: user.username }, process.env.REFRESH_TOKEN as string, { expiresIn: "7d" })
-        user.accesstoken = newAccessToken
+
         user.refreshtoken = newRefreshToken
         await user.save()
         return user
