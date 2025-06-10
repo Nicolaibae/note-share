@@ -1,0 +1,2 @@
+Description: Design and build RESTful API using Node.js, Express and TypeScript. The system allows users to sign in, sign out (using JWT for authentication). Users can create notes and share notes with other users. Test JWT middleware and permissions, ensuring only the shared user can view the notes. Data is stored and queried using MongoDB via Mongoose.
+Installing: git clone project... and npm i 
